@@ -1,0 +1,22 @@
+# 第 3 类检查：合进主分支之后，再把全部测试（包括慢测试）跑一遍。
+# 这里红了，不回滚，而是马上再提交一个修复（向前修）。
+# 发版只从这里全绿的提交里挑。
+name: 主分支全量测试
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  full:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - name: 规则检查
+        run: ruff check .
+      - name: 全量测试（包括慢测试）
+        run: pytest -v

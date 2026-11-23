@@ -1,0 +1,25 @@
+# 第 1 类 + 第 2 类检查：开 PR 的时候跑，要快。
+name: PR 快检查
+
+on:
+  pull_request:
+
+jobs:
+  fast:
+    runs-on: ubuntu-latest
+    # 时间预算 5 分钟（建议值）。超时说明测试太慢了，该去优化测试，而不是加机器。
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 要拿到完整历史，才能算出这次改了哪些文件
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - name: 规则检查
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: 只跑和这次改动相关的测试
+        run: python scripts/related_tests.py "origin/${{ github.base_ref }}"

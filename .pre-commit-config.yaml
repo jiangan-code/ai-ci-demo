@@ -1,0 +1,8 @@
+# 第 1 类检查：规则检查。每次 git commit 之前在你自己电脑上跑，几秒钟就完。
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
