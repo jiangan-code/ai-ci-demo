@@ -6,6 +6,8 @@ from shop.flags import is_enabled
 
 FULL_REDUCTION_THRESHOLD_CENTS = 100_00
 FULL_REDUCTION_CENTS = 20_00
+FREE_SHIPPING_CENTS = 199_00  # 满 199 包邮
+SHIPPING_CENTS = 10_00  # 不满就收 10 元运费
 
 
 def total_cents(cart: Cart, user_id: str, coupon: Coupon | None = None) -> int:
@@ -15,3 +17,9 @@ def total_cents(cart: Cart, user_id: str, coupon: Coupon | None = None) -> int:
     if is_enabled("full_reduction", user_id) and total >= FULL_REDUCTION_THRESHOLD_CENTS:
         total -= FULL_REDUCTION_CENTS
     return total
+
+
+def pay_cents(cart: Cart, user_id: str, coupon: Coupon | None = None) -> int:
+    """实付 = 商品金额 + 运费。运费单独算，不改商品金额。"""
+    total = total_cents(cart, user_id, coupon)
+    return total if total >= FREE_SHIPPING_CENTS else total + SHIPPING_CENTS

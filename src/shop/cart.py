@@ -10,6 +10,8 @@ class Item:
     qty: int = 1
 
     def __post_init__(self) -> None:
+        if not self.name.strip():
+            raise ValueError("商品名不能是空的")
         if self.price_cents < 0:
             raise ValueError("价格不能是负数")
         if self.qty < 1:

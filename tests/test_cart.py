@@ -17,3 +17,8 @@ def test_empty_cart_is_zero():
 def test_rejects_negative_price():
     with pytest.raises(ValueError):
         Cart().add("坏数据", -1)
+
+
+def test_rejects_empty_name():
+    with pytest.raises(ValueError):
+        Cart().add("  ", 1_00)
