@@ -23,3 +23,11 @@ def test_same_cart_different_users_can_differ():
     """你和室友买一样的东西，价格可能不一样：开关只对一部分人打开了。"""
     results = {total_cents(_cart_of(120_00), f"user{i}") for i in range(500)}
     assert results == {100_00, 120_00}
+
+
+def test_shipping_is_separate(monkeypatch):
+    from shop.checkout import pay_cents
+
+    monkeypatch.setitem(flags.ROLLOUT_PERCENT, "full_reduction", 0)
+    assert pay_cents(_cart_of(120_00), "anyone") == 130_00
+    assert pay_cents(_cart_of(200_00), "anyone") == 200_00

@@ -16,6 +16,10 @@ def total_cents(cart: Cart, user_id: str, coupon: Coupon | None = None) -> int:
         total = coupon.apply(total)
     if is_enabled("full_reduction", user_id) and total >= FULL_REDUCTION_THRESHOLD_CENTS:
         total -= FULL_REDUCTION_CENTS
-    if total < FREE_SHIPPING_CENTS:
-        total += SHIPPING_CENTS
     return total
+
+
+def pay_cents(cart: Cart, user_id: str, coupon: Coupon | None = None) -> int:
+    """实付 = 商品金额 + 运费。运费单独算，不改商品金额。"""
+    total = total_cents(cart, user_id, coupon)
+    return total if total >= FREE_SHIPPING_CENTS else total + SHIPPING_CENTS
