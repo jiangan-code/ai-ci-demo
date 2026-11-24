@@ -1,0 +1,25 @@
+# EP2 攒批第 4 步：一批开一个 PR，在这个 PR 上跑一次重检查（全部快测试）。
+# 批次分支一律叫 batch/N，由 scripts/batch.py 创建。
+# 红了不撤，往这一批里加一个修复分支（向前修）。
+name: 批次重检查
+
+on:
+  pull_request:
+
+jobs:
+  heavy:
+    if: startsWith(github.head_ref, 'batch/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - name: 规则检查
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: 全部快测试
+        run: pytest -v -m "not slow"

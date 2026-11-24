@@ -1,0 +1,23 @@
+# EP2 攒批第 2 步：每个分支推上来，先跑一轮轻检查。只看规范和能不能编译，不跑测试。
+name: 分支轻检查
+
+on:
+  push:
+    branches-ignore: [main, "batch/**"]
+
+jobs:
+  light:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - name: 规则检查
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: 能不能编译
+        run: python -m compileall -q src

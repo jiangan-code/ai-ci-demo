@@ -6,7 +6,7 @@
 | 集 | tag | 内容 |
 | --- | --- | --- |
 | EP1 | `ep1` | 四类检查：提交前检查、PR 快检查、主分支全量测试、特性开关 + 按比例放量 |
-| EP2 | `ep2` | 攒批：几条分支攒成一个 PR（还在做） |
+| EP2 | `ep2` | 攒批：几个分支攒成一批，一批只开一个 PR、只跑一次重检查 |
 
 ## 准备
 
@@ -74,3 +74,38 @@ print('1000 个用户买同样的东西，拿到满减的有', prices.count(100_
 ```
 
 两个 workflow 推到 GitHub 上会自动生效：开 PR 时跑「PR 快检查」，合进 main 之后跑「主分支全量测试」。
+
+## EP2：攒批
+
+一个改动一个 PR，每个 PR 都要跑一趟重检查。AI 一天开几十个 PR，就要跑几十趟。
+攒批就像外卖骑手顺路攒单：每个改动还是单独一个分支，只是几个分支拼成一个 PR，重检查只跑一趟。
+
+| 步 | 做什么 | 这个仓库里对应的文件 |
+| --- | --- | --- |
+| 1 | 每个改动照样一个分支 | — |
+| 2 | 分支推上来，先跑轻检查：规范 + 能不能编译，不跑测试 | `.github/workflows/branch-light.yml` |
+| 3、4 | 过了轻检查的分支，攒成一个批次分支 `batch/N`，开一个 PR，跑重检查 | `scripts/batch.py`、`.github/workflows/batch-pr.yml` |
+| 5 | 同一时间最多一个批次，上一批没合进 main，新分支等下一批 | `scripts/batch.py` |
+| 6 | 批次红了，不改旧分支，加一个修复分支进这一批（向前修） | `scripts/batch.py add` |
+
+**照着做**
+
+```bash
+# 几个做完的分支，攒成一批（有 GitHub 远程仓库会自动开 PR，需要先装好 gh 并登录）
+python scripts/batch.py start feat/a feat/b feat/c
+
+# 批次红了：从批次分支拉一个修复分支，改好以后加进同一批
+git switch -c fix/xxx batch/1
+# ……改代码、提交……
+python scripts/batch.py add fix/xxx
+
+# 看看当前批次里有哪些分支
+python scripts/batch.py status
+```
+
+没有远程仓库也能玩：脚本会在本地跑重检查。
+
+两种做法可以并存：分支名是 `batch/N` 的 PR 走批次重检查，其他 PR 还是走 EP1 的「PR 快检查」。
+
+**抄之前先看** [`CHECKLIST.md`](CHECKLIST.md)：攒批的三个代价和三个问题。
+
